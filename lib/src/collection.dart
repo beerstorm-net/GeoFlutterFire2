@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'models/DistanceDocSnapshot.dart';
@@ -12,8 +11,8 @@ class GeoFireCollectionRef {
   Query _collectionReference;
   Stream<QuerySnapshot>? _stream;
 
-  GeoFireCollectionRef(this._collectionReference)
-      : assert(_collectionReference != null) {
+  GeoFireCollectionRef(this._collectionReference) {
+    // : assert(_collectionReference != null)
     _stream = _createStream(_collectionReference)!.shareReplay(maxSize: 1);
   }
 

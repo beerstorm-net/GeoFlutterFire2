@@ -1,3 +1,7 @@
+## 2.2.3
+* updates for pub analysis feedback
+* upgraded dependencies aligned with Flutter2
+
 ## 2.2.2
 * upgraded dependencies aligned with Flutter2
 * added Null safety
