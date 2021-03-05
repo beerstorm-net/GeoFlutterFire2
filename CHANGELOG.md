@@ -1,3 +1,8 @@
+## 2.3.0
+* upgraded dependencies aligned with Flutter2
+* added Null safety
+* increment major version
+
 ## 2.2.4
 * update README
 * upgraded dependencies aligned with Flutter2
