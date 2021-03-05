@@ -19,18 +19,18 @@ You should ensure that you add GeoFlutterFire as a dependency in your flutter pr
 
 ```yaml
 dependencies:
-  geoflutterfire: <latest-version>
+  geoflutterfire2: <latest-version>
 ```
 
 You can also reference the git repo directly if you want:
 
 ```yaml
 dependencies:
-  geoflutterfire:
-    git: git://github.com/DarshanGowda0/GeoFlutterFire.git
+  geoflutterfire2:
+    git: git://github.com/beerstorm-net/GeoFlutterFire2.git
 ```
 
-You should then run `flutter packages get` or update your packages in IntelliJ.
+You should then run `flutter pub get` or update your packages in IntelliJ.
 
 ## Example
 
@@ -41,7 +41,7 @@ There is a detailed example project in the `example` folder. Check that out or k
 You need a firebase project with [Firestore](https://pub.dartlang.org/packages/cloud_firestore) setup.
 
 ```dart
-import 'package:geoflutterfire/geoflutterfire.dart';
+import 'package:geoflutterfire2/geoflutterfire2.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Init firestore and geoFlutterFire

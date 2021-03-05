@@ -1,3 +1,7 @@
+## 2.2.4
+* update README
+* upgraded dependencies aligned with Flutter2
+
 ## 2.2.3
 * updates for pub analysis feedback
 * upgraded dependencies aligned with Flutter2
