@@ -1,3 +1,6 @@
+## 2.3.3
+* upgrade dependencies: cloud_firestore
+
 ## 2.3.2
 * upgrade dependencies
 
