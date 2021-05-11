@@ -1,5 +1,5 @@
 name: geoflutterfire_example
-description: Demonstrates how to use the geoflutterfire plugin.
+description: Demonstrates how to use the Geoflutterfire2 plugin.
 publish_to: "none"
 
 environment:
@@ -20,7 +20,7 @@ dev_dependencies:
   geoflutterfire2:
     path: ../
 
-  cloud_firestore: ^2.0.0
+  cloud_firestore: ^2.1.0
   google_maps_flutter: ^2.0.3
 
 # For information on the generic Dart part of this file, see the
