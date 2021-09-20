@@ -29,18 +29,18 @@ class GeoFireCollectionRef
   }
 
   @visibleForTesting
-  static GeoPoint geopointFromMap({
+  static GeoPoint? geopointFromMap({
     required String field,
     required Map<String, dynamic> snapData,
   }) {
     // split and fetch geoPoint from the nested Map
     final fieldList = field.split('.');
-    var geoPointField = snapData[fieldList[0]];
+    Map<dynamic, dynamic> geoPointField = snapData[fieldList[0]];
     if (fieldList.length > 1) {
       for (int i = 1; i < fieldList.length; i++) {
         geoPointField = geoPointField[fieldList[i]];
       }
     }
-    return geoPointField['geopoint'] as GeoPoint;
+    return geoPointField['geopoint'] as GeoPoint?;
   }
 }

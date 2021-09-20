@@ -91,7 +91,7 @@ class BaseGeoFireCollectionRef<T> {
     required GeoFirePoint center,
     required double radius,
     required String field,
-    required GeoPoint Function(T t) geopointFrom,
+    required GeoPoint? Function(T t) geopointFrom,
     bool? strictMode,
   }) {
     final nonNullStrictMode = strictMode ?? false;
@@ -119,6 +119,10 @@ class BaseGeoFireCollectionRef<T> {
         // We will handle it to fail gracefully
 
         final geoPoint = geopointFrom(snapData);
+        assert(geoPoint != null, 'Couldnt find geopoint from stored data');
+        if (geoPoint == null) return null;
+        // We will handle it to fail gracefully
+
         final distance = center.distance(
           lat: geoPoint.latitude,
           lng: geoPoint.longitude,
