@@ -6,7 +6,8 @@ import 'point.dart';
 class GeoFlutterFire {
   GeoFlutterFire();
 
-  GeoFireCollectionRef collection({required Query collectionRef}) {
+  GeoFireCollectionRef collection(
+      {required Query<Map<String, dynamic>> collectionRef}) {
     return GeoFireCollectionRef(collectionRef);
   }
 

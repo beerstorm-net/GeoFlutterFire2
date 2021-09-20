@@ -8,23 +8,22 @@ import 'point.dart';
 import 'util.dart';
 
 class GeoFireCollectionRef {
-  Query _collectionReference;
-  Stream<QuerySnapshot>? _stream;
+  final Query<Map<String, dynamic>> _collectionReference;
+  late final Stream<QuerySnapshot<Map<String, dynamic>>>? _stream;
 
   GeoFireCollectionRef(this._collectionReference) {
-    // : assert(_collectionReference != null)
     _stream = _createStream(_collectionReference)!.shareReplay(maxSize: 1);
   }
 
   /// return QuerySnapshot stream
-  Stream<QuerySnapshot>? snapshot() {
+  Stream<QuerySnapshot<Map<String, dynamic>>>? snapshot() {
     return _stream;
   }
 
   /// return the Document mapped to the [id]
-  Stream<List<DocumentSnapshot>> data(String id) {
-    return _stream!.map((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.where((DocumentSnapshot documentSnapshot) {
+  Stream<List<DocumentSnapshot<Map<String, dynamic>>>> data(String id) {
+    return _stream!.map((querySnapshot) {
+      querySnapshot.docs.where((documentSnapshot) {
         return documentSnapshot.id == id;
       });
       return querySnapshot.docs;
@@ -32,9 +31,12 @@ class GeoFireCollectionRef {
   }
 
   /// add a document to collection with [data]
-  Future<DocumentReference> add(Map<String, dynamic> data) {
+  Future<DocumentReference<Map<String, dynamic>>> add(
+    Map<String, dynamic> data,
+  ) {
     try {
-      CollectionReference colRef = _collectionReference as CollectionReference;
+      final colRef =
+          _collectionReference as CollectionReference<Map<String, dynamic>>;
       return colRef.add(data);
     } catch (e) {
       throw Exception(
@@ -54,7 +56,7 @@ class GeoFireCollectionRef {
   }
 
   /// create or update a document with [id], [merge] defines whether the document should overwrite
-  Future<void> setDoc(String id, var data, {bool merge = false}) {
+  Future<void> setDoc(String id, Object? data, {bool merge = false}) {
     try {
       CollectionReference colRef = _collectionReference as CollectionReference;
       return colRef.doc(id).set(data, SetOptions(merge: merge));
@@ -66,7 +68,11 @@ class GeoFireCollectionRef {
 
   /// set a geo point with [latitude] and [longitude] using [field] as the object key to the document with [id]
   Future<void> setPoint(
-      String id, String field, double latitude, double longitude) {
+    String id,
+    String field,
+    double latitude,
+    double longitude,
+  ) {
     try {
       CollectionReference colRef = _collectionReference as CollectionReference;
       var point = GeoFirePoint(latitude, longitude).data;
@@ -79,7 +85,7 @@ class GeoFireCollectionRef {
 
   /// query firestore documents based on geographic [radius] from geoFirePoint [center]
   /// [field] specifies the name of the key in the document
-  Stream<List<DocumentSnapshot>> within({
+  Stream<List<DocumentSnapshot<Map<String, dynamic>>>> within({
     required GeoFirePoint center,
     required double radius,
     required String field,
@@ -89,27 +95,25 @@ class GeoFireCollectionRef {
     final centerHash = center.hash.substring(0, precision);
     final area = GeoFirePoint.neighborsOf(hash: centerHash)..add(centerHash);
 
-    Iterable<Stream<List<DistanceDocSnapshot>>> queries = area.map((hash) {
+    final queries = area.map((hash) {
       final tempQuery = _queryPoint(hash, field);
-      return _createStream(tempQuery)!.map((QuerySnapshot querySnapshot) {
+      return _createStream(tempQuery)!.map((querySnapshot) {
         return querySnapshot.docs
             .map((element) => DistanceDocSnapshot(element, null))
             .toList();
       });
     });
 
-    Stream<List<DistanceDocSnapshot>> mergedObservable =
-        mergeObservable(queries);
+    final mergedObservable = mergeObservable(queries);
 
-    var filtered = mergedObservable.map((List<DistanceDocSnapshot> list) {
-      var mappedList = list.map((DistanceDocSnapshot distanceDocSnapshot) {
+    final filtered = mergedObservable.map((list) {
+      final mappedList = list.map((distanceDocSnapshot) {
         // split and fetch geoPoint from the nested Map
         final fieldList = field.split('.');
-        Map<dynamic, dynamic> snapData =
-            distanceDocSnapshot.documentSnapshot.exists
-                ? distanceDocSnapshot.documentSnapshot.data() as Map
-                : Map();
-        var geoPointField = snapData[fieldList[0]];
+        final snapData = distanceDocSnapshot.documentSnapshot.exists
+            ? distanceDocSnapshot.documentSnapshot.data()
+            : {};
+        var geoPointField = snapData?[fieldList[0]] as Map<String, dynamic>;
         //distanceDocSnapshot.documentSnapshot.data()![fieldList[0]];
         if (fieldList.length > 1) {
           for (int i = 1; i < fieldList.length; i++) {
@@ -117,14 +121,16 @@ class GeoFireCollectionRef {
           }
         }
         final GeoPoint geoPoint = geoPointField['geopoint'];
-        distanceDocSnapshot.distance =
-            center.distance(lat: geoPoint.latitude, lng: geoPoint.longitude);
+        distanceDocSnapshot.distance = center.distance(
+          lat: geoPoint.latitude,
+          lng: geoPoint.longitude,
+        );
         return distanceDocSnapshot;
       });
 
       final filteredList = strictMode
           ? mappedList
-              .where((DistanceDocSnapshot doc) =>
+              .where((doc) =>
                       doc.distance! <=
                       radius * 1.02 // buffer for edge distances;
                   )
@@ -142,13 +148,15 @@ class GeoFireCollectionRef {
   }
 
   Stream<List<DistanceDocSnapshot>> mergeObservable(
-      Iterable<Stream<List<DistanceDocSnapshot>>> queries) {
-    Stream<List<DistanceDocSnapshot>> mergedObservable = Rx.combineLatest(
-        queries, (List<List<DistanceDocSnapshot>> originalList) {
+    Iterable<Stream<List<DistanceDocSnapshot>>> queries,
+  ) {
+    final mergedObservable =
+        Rx.combineLatest<List<DistanceDocSnapshot>, List<DistanceDocSnapshot>>(
+            queries, (originalList) {
       final reducedList = <DistanceDocSnapshot>[];
-      originalList.forEach((t) {
+      for (final t in originalList) {
         reducedList.addAll(t);
-      });
+      }
       return reducedList;
     });
     return mergedObservable;
@@ -157,14 +165,16 @@ class GeoFireCollectionRef {
   /// INTERNAL FUNCTIONS
 
   /// construct a query for the [geoHash] and [field]
-  Query _queryPoint(String geoHash, String field) {
+  Query<Map<String, dynamic>> _queryPoint(String geoHash, String field) {
     final end = '$geoHash~';
     final temp = _collectionReference;
     return temp.orderBy('$field.geohash').startAt([geoHash]).endAt([end]);
   }
 
   /// create an observable for [ref], [ref] can be [Query] or [CollectionReference]
-  Stream<QuerySnapshot>? _createStream(var ref) {
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _createStream(
+    Query<Map<String, dynamic>> ref,
+  ) {
     return ref.snapshots();
   }
 }
