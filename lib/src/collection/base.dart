@@ -84,15 +84,32 @@ class BaseGeoFireCollectionRef<T> {
     }
   }
 
-  /// query firestore documents based on geographic [radius] from geoFirePoint [center]
-  /// [field] specifies the name of the key in the document
   @protected
   Stream<List<DocumentSnapshot<T>>> protectedWithin({
     required GeoFirePoint center,
     required double radius,
     required String field,
     required GeoPoint? Function(T t) geopointFrom,
-    bool? strictMode,
+    required bool? strictMode,
+  }) =>
+      protectedWithinWithDistance(
+        center: center,
+        radius: radius,
+        field: field,
+        geopointFrom: geopointFrom,
+        strictMode: strictMode,
+      ).map((snapshots) =>
+          snapshots.map((snapshot) => snapshot.documentSnapshot).toList());
+
+  /// query firestore documents based on geographic [radius] from geoFirePoint [center]
+  /// [field] specifies the name of the key in the document
+  @protected
+  Stream<List<DistanceDocSnapshot<T>>> protectedWithinWithDistance({
+    required GeoFirePoint center,
+    required double radius,
+    required String field,
+    required GeoPoint? Function(T t) geopointFrom,
+    required bool? strictMode,
   }) {
     final nonNullStrictMode = strictMode ?? false;
 
@@ -144,7 +161,7 @@ class BaseGeoFireCollectionRef<T> {
       filteredList.sort(
         (a, b) => (a.distance * 1000).toInt() - (b.distance * 1000).toInt(),
       );
-      return filteredList.map((element) => element.documentSnapshot).toList();
+      return filteredList;
     });
     return filtered.asBroadcastStream();
   }

@@ -4,6 +4,8 @@ import 'package:geoflutterfire2/geoflutterfire2.dart';
 import 'package:rxdart/rxdart.dart';
 
 class StreamTestWidget extends StatefulWidget {
+  const StreamTestWidget({Key key}) : super(key: key);
+
   @override
   _StreamTestWidgetState createState() => _StreamTestWidgetState();
 }
@@ -39,13 +41,15 @@ class _StreamTestWidgetState extends State<StreamTestWidget> {
                 AsyncSnapshot<List<DocumentSnapshot>> snapshots) {
               if (snapshots.connectionState == ConnectionState.active &&
                   snapshots.hasData) {
+                // ignore: avoid_print
                 print('data ${snapshots.data}');
-                return Container(
+                return SizedBox(
                   height: MediaQuery.of(context).size.height * 2 / 3,
                   child: ListView.builder(
                     itemBuilder: (context, index) {
                       final doc = snapshots.data[index];
                       Map<String, dynamic> data = doc.data();
+                      // ignore: avoid_print
                       print(
                           'doc with id ${doc.id} distance ${data['distance']}');
                       GeoPoint point = data['position']['geopoint'];
@@ -56,7 +60,9 @@ class _StreamTestWidgetState extends State<StreamTestWidget> {
                         ),
                         subtitle: Text('${point.latitude}, ${point.longitude}'),
                         trailing: Text(
-                            '${data['documentType'] == DocumentChangeType.added ? 'Added' : 'Modified'}'),
+                            data['documentType'] == DocumentChangeType.added
+                                ? 'Added'
+                                : 'Modified'),
                       );
                     },
                     itemCount: snapshots.data.length,
@@ -91,6 +97,7 @@ class _StreamTestWidgetState extends State<StreamTestWidget> {
   changed(value) {
     setState(() {
       _value = value;
+      // ignore: avoid_print
       print(_value);
       _label = '${_value.toInt().toString()} kms';
     });
