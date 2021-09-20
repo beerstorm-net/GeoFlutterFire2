@@ -1,12 +1,12 @@
 import 'dart:math';
 
-import 'point.dart';
+import '../models/point.dart';
 
-class Util {
+class MathUtils {
   static const BASE32_CODES = '0123456789bcdefghjkmnpqrstuvwxyz';
   Map<String, int> base32CodesDic = new Map();
 
-  Util() {
+  MathUtils() {
     for (var i = 0; i < BASE32_CODES.length; i++) {
       base32CodesDic.putIfAbsent(BASE32_CODES[i], () => i);
     }

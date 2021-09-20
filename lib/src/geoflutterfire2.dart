@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geoflutterfire2/src/base_collection.dart';
+import 'package:geoflutterfire2/src/collection/collection_with_converter.dart';
 
-import 'collection.dart';
-import 'point.dart';
+import 'collection/collection.dart';
+import 'models/point.dart';
 
 class GeoFlutterFire {
   GeoFlutterFire();

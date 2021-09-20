@@ -4,10 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'models/distance_doc_snapshot.dart';
-import 'point.dart';
-import 'util.dart';
-import 'utils.dart';
+import '../models/distance_doc_snapshot.dart';
+import '../models/point.dart';
+import '../utils/math.dart';
+import '../utils/arrays.dart';
 
 class GeoFireCollectionWithConverterRef<T> {
   final Query<T> _collectionReference;
@@ -95,7 +95,7 @@ class GeoFireCollectionWithConverterRef<T> {
   }) {
     final nonNullStrictMode = strictMode ?? false;
 
-    final precision = Util.setPrecision(radius);
+    final precision = MathUtils.setPrecision(radius);
     final centerHash = center.hash.substring(0, precision);
     final area = GeoFirePoint.neighborsOf(hash: centerHash)..add(centerHash);
 

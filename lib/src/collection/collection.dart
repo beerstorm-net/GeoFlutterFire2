@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import 'base_collection.dart';
-import 'point.dart';
+import 'collection_with_converter.dart';
+import '../models/point.dart';
 
 class GeoFireCollectionRef
     extends GeoFireCollectionWithConverterRef<Map<String, dynamic>> {

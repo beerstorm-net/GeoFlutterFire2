@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'util.dart';
+import '../utils/math.dart';
 
 class GeoFirePoint {
-  static Util _util = Util();
+  static MathUtils _util = MathUtils();
   double latitude, longitude;
 
   GeoFirePoint(this.latitude, this.longitude);
@@ -11,7 +11,7 @@ class GeoFirePoint {
   /// return geographical distance between two Co-ordinates
   static double distanceBetween(
       {required Coordinates to, required Coordinates from}) {
-    return Util.distance(to, from);
+    return MathUtils.distance(to, from);
   }
 
   /// return neighboring geo-hashes of [hash]
