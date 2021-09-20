@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../models/distance_doc_snapshot.dart';
