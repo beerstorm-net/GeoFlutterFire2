@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geoflutterfire2/src/collection/base.dart';
+import 'package:geoflutterfire2/src/collection/with_converter.dart';
 
 import 'collection/default.dart';
 import 'models/point.dart';
@@ -13,10 +14,10 @@ class GeoFlutterFire {
     return GeoFireCollectionRef(collectionRef);
   }
 
-  BaseGeoFireCollectionRef<T> collectionWithConverter<T>({
+  GeoFireCollectionWithConverterRef<T> collectionWithConverter<T>({
     required Query<T> collectionRef,
   }) {
-    return BaseGeoFireCollectionRef<T>(collectionRef);
+    return GeoFireCollectionWithConverterRef<T>(collectionRef);
   }
 
   GeoFireCollectionRef customCollection({
