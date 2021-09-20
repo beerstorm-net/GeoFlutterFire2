@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import 'collection_with_converter.dart';
+import 'base.dart';
 import '../models/point.dart';
 
 class GeoFireCollectionRef
-    extends GeoFireCollectionWithConverterRef<Map<String, dynamic>> {
+    extends BaseGeoFireCollectionRef<Map<String, dynamic>> {
   GeoFireCollectionRef(Query<Map<String, dynamic>> collectionReference)
       : super(collectionReference);
 
@@ -17,7 +17,7 @@ class GeoFireCollectionRef
     required String field,
     bool strictMode = false,
   }) {
-    return withinWithConverter(
+    return protectedWithin(
       center: center,
       radius: radius,
       field: field,

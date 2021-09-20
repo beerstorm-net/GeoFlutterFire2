@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../models/distance_doc_snapshot.dart';
@@ -8,11 +9,11 @@ import '../models/point.dart';
 import '../utils/math.dart';
 import '../utils/arrays.dart';
 
-class GeoFireCollectionWithConverterRef<T> {
+class BaseGeoFireCollectionRef<T> {
   final Query<T> _collectionReference;
   late final Stream<QuerySnapshot<T>>? _stream;
 
-  GeoFireCollectionWithConverterRef(this._collectionReference) {
+  BaseGeoFireCollectionRef(this._collectionReference) {
     _stream = _createStream(_collectionReference).shareReplay(maxSize: 1);
   }
 
@@ -85,7 +86,8 @@ class GeoFireCollectionWithConverterRef<T> {
 
   /// query firestore documents based on geographic [radius] from geoFirePoint [center]
   /// [field] specifies the name of the key in the document
-  Stream<List<DocumentSnapshot<T>>> withinWithConverter({
+  @protected
+  Stream<List<DocumentSnapshot<T>>> protectedWithin({
     required GeoFirePoint center,
     required double radius,
     required String field,
