@@ -1,3 +1,6 @@
+## 2.3.11
+* upgrade dependencies
+
 ## 2.3.10
 * upgrade dependencies
 
