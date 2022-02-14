@@ -250,12 +250,14 @@ class MathUtils {
   // Cutoff for floating point calculations
   static const double epsilon = 1e-12;
 
-  static double distance(Coordinates location1, Coordinates location2) {
-    return calcDistance(location1.latitude, location1.longitude,
+  /// distance in km
+  static double kmDistance(Coordinates location1, Coordinates location2) {
+    return kmCalcDistance(location1.latitude, location1.longitude,
         location2.latitude, location2.longitude);
   }
 
-  static double calcDistance(
+  /// distance in km
+  static double kmCalcDistance(
       double lat1, double long1, double lat2, double long2) {
     // Earth's mean radius in meters
     const radius = (earthEqRadius + earthPolarRadius) / 2;

@@ -2,7 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DistanceDocSnapshot<T> {
   final DocumentSnapshot<T> documentSnapshot;
-  final double distance;
+  final double kmDistance;
 
-  DistanceDocSnapshot(this.documentSnapshot, this.distance);
+  DistanceDocSnapshot({
+    required this.documentSnapshot,
+    required this.kmDistance,
+  });
 }

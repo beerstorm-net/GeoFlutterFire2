@@ -9,9 +9,9 @@ class GeoFirePoint {
   GeoFirePoint(this.latitude, this.longitude);
 
   /// return geographical distance between two Co-ordinates
-  static double distanceBetween(
+  static double kmDistanceBetween(
       {required Coordinates to, required Coordinates from}) {
-    return MathUtils.distance(to, from);
+    return MathUtils.kmDistance(to, from);
   }
 
   /// return neighboring geo-hashes of [hash]
@@ -39,8 +39,8 @@ class GeoFirePoint {
   }
 
   /// return distance between [GeoFirePoint] and ([lat], [lng])
-  double distance({required double lat, required double lng}) {
-    return distanceBetween(from: coords, to: Coordinates(lat, lng));
+  double kmDistance({required double lat, required double lng}) {
+    return kmDistanceBetween(from: coords, to: Coordinates(lat, lng));
   }
 
   get data {
@@ -49,7 +49,7 @@ class GeoFirePoint {
 
   /// haversine distance between [GeoFirePoint] and ([lat], [lng])
   haversineDistance({required double lat, required double lng}) {
-    return GeoFirePoint.distanceBetween(
+    return GeoFirePoint.kmDistanceBetween(
         from: coords, to: Coordinates(lat, lng));
   }
 }

@@ -140,18 +140,21 @@ class BaseGeoFireCollectionRef<T> {
         if (geoPoint == null) return null;
         // We will handle it to fail gracefully
 
-        final distance = center.distance(
+        final kmDistance = center.kmDistance(
           lat: geoPoint.latitude,
           lng: geoPoint.longitude,
         );
-        return DistanceDocSnapshot(documentSnapshot, distance);
+        return DistanceDocSnapshot(
+          documentSnapshot: documentSnapshot,
+          kmDistance: kmDistance,
+        );
       });
 
       final nullableFilteredList = nonNullStrictMode
           ? mappedList
               .where((doc) =>
                       doc != null &&
-                      doc.distance <=
+                      doc.kmDistance <=
                           radius * 1.02 // buffer for edge distances;
                   )
               .toList()
@@ -159,7 +162,7 @@ class BaseGeoFireCollectionRef<T> {
       final filteredList = nullableFilteredList.whereNotNull().toList();
 
       filteredList.sort(
-        (a, b) => (a.distance * 1000).toInt() - (b.distance * 1000).toInt(),
+        (a, b) => (a.kmDistance * 1000).toInt() - (b.kmDistance * 1000).toInt(),
       );
       return filteredList;
     });
