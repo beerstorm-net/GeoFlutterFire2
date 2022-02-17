@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:geoflutterfire2/geoflutterfire2.dart';
 
 import 'base.dart';
-import '../models/point.dart';
 
 class GeoFireCollectionRef
     extends BaseGeoFireCollectionRef<Map<String, dynamic>> {

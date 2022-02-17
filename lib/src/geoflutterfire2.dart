@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geoflutterfire2/src/collection/base.dart';
 import 'package:geoflutterfire2/src/collection/with_converter.dart';
 
 import 'collection/default.dart';

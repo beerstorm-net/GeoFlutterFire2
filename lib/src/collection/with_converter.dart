@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geoflutterfire2/geoflutterfire2.dart';
 
 import 'base.dart';
-import '../models/point.dart';
 
 class GeoFireCollectionWithConverterRef<T> extends BaseGeoFireCollectionRef<T> {
   GeoFireCollectionWithConverterRef(Query<T> collectionReference)
