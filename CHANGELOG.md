@@ -1,3 +1,7 @@
+## 2.3.14
+* upgrade dependencies  
+* fix for query results duplicate after 1250km as described in [this issue](https://github.com/beerstorm-net/GeoFlutterFire2/issues/13)  
+
 ## 2.3.13
 * upgrade dependencies
 
