@@ -76,12 +76,12 @@ class GeoFireCollectionRef {
     }
   }
 
-  Future<List<DocumentSnapshot?>> get({
+  Future<List<DocumentSnapshot>> get({
     required GeoFirePoint center,
     required double radius,
     required String field,
     required bool? strictMode,
-  }) async {
+  }) {
     return within(
       center: center,
       field: field,
@@ -89,8 +89,8 @@ class GeoFireCollectionRef {
       strictMode: strictMode = false,
     )
         .map((snapshots) =>
-            snapshots.map((snapshot) => snapshot.data()).toList())
-        .first as List<DocumentSnapshot>;
+            snapshots.map<DocumentSnapshot>((snapshot) => snapshot).toList())
+        .first;
   }
 
   /// query firestore documents based on geographic [radius] from geoFirePoint [center]
