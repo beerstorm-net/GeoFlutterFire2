@@ -1,14 +1,13 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
-
 import 'models/DistanceDocSnapshot.dart';
 import 'point.dart';
 import 'util.dart';
 
 class GeoFireCollectionRef {
   Query _collectionReference;
+
   Stream<QuerySnapshot>? _stream;
 
   GeoFireCollectionRef(this._collectionReference) {
@@ -75,6 +74,23 @@ class GeoFireCollectionRef {
       throw Exception(
           'cannot call set on Query, use collection reference instead');
     }
+  }
+
+  Future<List<DocumentSnapshot?>> get({
+    required GeoFirePoint center,
+    required double radius,
+    required String field,
+    required bool? strictMode,
+  }) async {
+    return within(
+      center: center,
+      field: field,
+      radius: radius,
+      strictMode: strictMode = false,
+    )
+        .map((snapshots) =>
+            snapshots.map((snapshot) => snapshot.data()).toList())
+        .first as List<DocumentSnapshot>;
   }
 
   /// query firestore documents based on geographic [radius] from geoFirePoint [center]
