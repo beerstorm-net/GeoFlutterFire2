@@ -70,6 +70,12 @@ Calling `geoFirePoint.data` returns an object that contains a [geohash string](h
 ![](https://firebasestorage.googleapis.com/v0/b/geo-test-c92e4.appspot.com/o/point1.png?alt=media&token=0c833700-3dbd-476a-99a9-41c1143dbe97)
 
 ## Query Geo data
+> **Warning**
+> Querying locations creates 9 separated stream listeners on firestore. One for central geo hash and 8 surrounding it.
+> `within` function creates a convenient broadcast stream, if you need more than one subscriber for the locations. But it also causes
+> memory leak, because underlying stream listeners are not cancelled when you cancel StreamSubscription from `within` method.
+> 
+> It's much safer to use withinAsSingleStreamSubscription which you can cancel, and it will also cancel 9 underlying streams as well.
 
 To query a collection of documents with 50kms from a point
 
