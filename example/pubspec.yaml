@@ -20,8 +20,8 @@ dev_dependencies:
   geoflutterfire2:
     path: ../
 
-  cloud_firestore: ^4.1.0
-  google_maps_flutter: ^2.2.1
+  cloud_firestore: ^4.4.4
+  google_maps_flutter: ^2.2.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

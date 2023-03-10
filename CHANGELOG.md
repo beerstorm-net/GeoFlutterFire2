@@ -1,5 +1,6 @@
 ## 2.3.15
-* provide option to listen on source location stream which doesn't cause memory leaks
+* provide option to listen on source location stream which doesn't cause memory leaks, [fix from this PR](https://github.com/beerstorm-net/GeoFlutterFire2/pull/26)      
+* upgrade dependencies   
 
 ## 2.3.14
 * upgrade dependencies  
