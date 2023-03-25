@@ -78,7 +78,7 @@ class GeoFireCollectionRef {
   }
 
   /// Query firestore documents based on geographic [radius] in kilometers from geoFirePoint [center]
-  /// [field] specifies the name of the key that contains "geohash" key
+  /// [field] specifies the name of the key that contains "geohash" and "geopoint" keys in the document
   /// returns the list of [DocumentSnapshot]
   ///
   /// Use [strictMode] parameter to filter by distance from center
@@ -205,7 +205,7 @@ class GeoFireCollectionRef {
   }
 
   /// Query firestore documents based on geographic [radius] in kilometers from geoFirePoint [center]
-  /// [field] specifies the name of the key that contains "geohash" key in the document
+  /// [field] specifies the name of the key that contains "geohash" and "geopoint" keys in the document
   /// returns merged stream as broadcast stream.
   ///
   /// Use [strictMode] parameter to filter by distance from center
@@ -231,7 +231,7 @@ class GeoFireCollectionRef {
   }
 
   /// Query firestore documents based on geographic [radius] in kilometers from geoFirePoint [center]
-  /// [field] specifies the name of the key in the document
+  /// [field] specifies the name of the key that contains "geohash" and "geopoint" keys in the document
   /// returns merged stream as broadcast stream.
   ///
   /// !WARNING! This causes memory leaks because under the hood rxdart StreamController
