@@ -77,6 +77,64 @@ class GeoFireCollectionRef {
     }
   }
 
+  /// Query firestore documents based on geographic [radius] in kilometers from geoFirePoint [center]
+  /// [field] specifies the name of the key that contains "geohash" key
+  /// returns the list of [DocumentSnapshot]
+  ///
+  /// Use [strictMode] parameter to filter by distance from center
+  Future<List<DocumentSnapshot>> getDocumentsWithin({
+    required GeoFirePoint center,
+    required double radius,
+    required String field,
+    bool strictMode = false,
+  }) async {
+    final precision = Util.setPrecision(radius);
+    final centerHash = center.hash.substring(0, precision);
+    final area = Set<String>.from(
+      GeoFirePoint.neighborsOf(hash: centerHash)..add(centerHash),
+    ).toList();
+    print(area);
+    List<DistanceDocSnapshot> distanceDocSnapshots = [];
+    for (var hash in area) {
+      final tempQuery = _queryPoint(hash, field);
+      for (var querySnapshot in (await tempQuery.get()).docs) {
+        var distanceDocSnapshot = DistanceDocSnapshot(querySnapshot, null);
+        final fieldList = field.split('.');
+        Map<dynamic, dynamic> snapData =
+            distanceDocSnapshot.documentSnapshot.exists
+                ? distanceDocSnapshot.documentSnapshot.data() as Map
+                : Map();
+        print(snapData);
+        var geoPointField = snapData[fieldList[0]];
+        //distanceDocSnapshot.documentSnapshot.data()![fieldList[0]];
+        if (fieldList.length > 1) {
+          for (int i = 1; i < fieldList.length; i++) {
+            geoPointField = geoPointField[fieldList[i]];
+          }
+        }
+        final GeoPoint geoPoint = geoPointField['geopoint'];
+        distanceDocSnapshot.distance =
+            center.distance(lat: geoPoint.latitude, lng: geoPoint.longitude);
+        distanceDocSnapshots.add(distanceDocSnapshot);
+      }
+    }
+
+    final filteredList = strictMode
+        ? distanceDocSnapshots
+            .where((DistanceDocSnapshot doc) =>
+                    doc.distance! <= radius * 1.02 // buffer for edge distances;
+                )
+            .toList()
+        : distanceDocSnapshots.toList();
+    filteredList.sort((a, b) {
+      final distA = a.distance!;
+      final distB = b.distance!;
+      final val = (distA * 1000).toInt() - (distB * 1000).toInt();
+      return val;
+    });
+    return filteredList.map((element) => element.documentSnapshot).toList();
+  }
+
   /// Create combined stream listeners for each geo hash around (including) central point.
   /// It creates 9 listeners and the hood.
   ///
@@ -147,8 +205,10 @@ class GeoFireCollectionRef {
   }
 
   /// Query firestore documents based on geographic [radius] in kilometers from geoFirePoint [center]
-  /// [field] specifies the name of the key in the document
+  /// [field] specifies the name of the key that contains "geohash" key in the document
   /// returns merged stream as broadcast stream.
+  ///
+  /// Use [strictMode] parameter to filter by distance from center
   ///
   /// Returns original stream from the underlying rxdart implementation, which
   /// could be safely cancelled without memory leaks. It's single stream subscription,
