@@ -146,7 +146,7 @@ class GeoFireCollectionRef {
     return filtered;
   }
 
-  /// Query firestore documents based on geographic [radius] from geoFirePoint [center]
+  /// Query firestore documents based on geographic [radius] in kilometers from geoFirePoint [center]
   /// [field] specifies the name of the key in the document
   /// returns merged stream as broadcast stream.
   ///
@@ -170,7 +170,7 @@ class GeoFireCollectionRef {
     );
   }
 
-  /// Query firestore documents based on geographic [radius] from geoFirePoint [center]
+  /// Query firestore documents based on geographic [radius] in kilometers from geoFirePoint [center]
   /// [field] specifies the name of the key in the document
   /// returns merged stream as broadcast stream.
   ///
