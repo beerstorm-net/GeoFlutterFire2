@@ -146,6 +146,63 @@ class GeoFireCollectionRef {
     return filtered;
   }
 
+  Future<List<DocumentSnapshot>> _buildQueryFuture({
+    required GeoFirePoint center,
+    required double radius,
+    required String field,
+    bool strictMode = false,
+  }) async {
+    final precision = Util.setPrecision(radius);
+    final centerHash = center.hash.substring(0, precision);
+    final area = Set<String>.from(
+      GeoFirePoint.neighborsOf(hash: centerHash)..add(centerHash),
+    ).toList();
+
+    Iterable<Future<List<DistanceDocSnapshot>>> queries =
+        area.map((hash) async {
+      final tempQuery = _queryPoint(hash, field);
+      QuerySnapshot snap = await _createFuture(tempQuery);
+      return snap.docs.map((e) => DistanceDocSnapshot(e, null)).toList();
+    });
+
+    Future<List<DistanceDocSnapshot>> mergedFutures = mergeFutures(queries);
+    final snaps = await mergedFutures;
+    var mappedList = snaps.map((DistanceDocSnapshot distanceDocSnapshot) {
+      // split and fetch geoPoint from the nested Map
+      final fieldList = field.split('.');
+      Map<dynamic, dynamic> snapData =
+          distanceDocSnapshot.documentSnapshot.exists
+              ? distanceDocSnapshot.documentSnapshot.data() as Map
+              : Map();
+      var geoPointField = snapData[fieldList[0]];
+      //distanceDocSnapshot.documentSnapshot.data()![fieldList[0]];
+      if (fieldList.length > 1) {
+        for (int i = 1; i < fieldList.length; i++) {
+          geoPointField = geoPointField[fieldList[i]];
+        }
+      }
+      final GeoPoint geoPoint = geoPointField['geopoint'];
+      distanceDocSnapshot.distance =
+          center.distance(lat: geoPoint.latitude, lng: geoPoint.longitude);
+      return distanceDocSnapshot;
+    });
+
+    final filteredList = strictMode
+        ? mappedList
+            .where((DistanceDocSnapshot doc) =>
+                    doc.distance! <= radius * 1.02 // buffer for edge distances;
+                )
+            .toList()
+        : mappedList.toList();
+    filteredList.sort((a, b) {
+      final distA = a.distance!;
+      final distB = b.distance!;
+      final val = (distA * 1000).toInt() - (distB * 1000).toInt();
+      return val;
+    });
+    return filteredList.map((element) => element.documentSnapshot).toList();
+  }
+
   /// Query firestore documents based on geographic [radius] from geoFirePoint [center]
   /// [field] specifies the name of the key in the document
   /// returns merged stream as broadcast stream.
@@ -193,6 +250,19 @@ class GeoFireCollectionRef {
     ).asBroadcastStream();
   }
 
+  /// Query firestore documents based on geographic [radius] from geoFirePoint [center]
+  /// [field] specifies the name of the key in the document
+  /// returns merged future.
+  Future<List<DocumentSnapshot>> singleWithin({
+    required GeoFirePoint center,
+    required double radius,
+    required String field,
+    bool strictMode = false,
+  }) {
+    return _buildQueryFuture(
+        center: center, radius: radius, field: field, strictMode: strictMode);
+  }
+
   Stream<List<DistanceDocSnapshot>> mergeObservable(
       Iterable<Stream<List<DistanceDocSnapshot>>> queries) {
     Stream<List<DistanceDocSnapshot>> mergedObservable = Rx.combineLatest(
@@ -204,6 +274,13 @@ class GeoFireCollectionRef {
       return reducedList;
     });
     return mergedObservable;
+  }
+
+  Future<List<DistanceDocSnapshot>> mergeFutures(
+      Iterable<Future<List<DistanceDocSnapshot>>> queries) async {
+    final mergedObservable = await Future.wait(queries);
+    final combinedList = mergedObservable.expand((e) => e).toList();
+    return combinedList;
   }
 
   /// INTERNAL FUNCTIONS
@@ -218,5 +295,10 @@ class GeoFireCollectionRef {
   /// create an observable for [ref], [ref] can be [Query] or [CollectionReference]
   Stream<QuerySnapshot>? _createStream(var ref) {
     return ref.snapshots();
+  }
+
+  /// create a future for [ref], [ref] can be [Query] or [CollectionReference]
+  Future<QuerySnapshot> _createFuture(Query ref) {
+    return ref.get();
   }
 }
