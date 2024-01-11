@@ -106,44 +106,33 @@ class GeoFireCollectionRef {
     Stream<List<DistanceDocSnapshot>> mergedObservable =
         mergeObservable(queries);
 
-    var filtered = mergedObservable.map((List<DistanceDocSnapshot> list) {
-      var mappedList = list.map((DistanceDocSnapshot distanceDocSnapshot) {
-        // split and fetch geoPoint from the nested Map
-        final fieldList = field.split('.');
-        Map<dynamic, dynamic> snapData =
-            distanceDocSnapshot.documentSnapshot.exists
-                ? distanceDocSnapshot.documentSnapshot.data() as Map
-                : Map();
-        var geoPointField = snapData[fieldList[0]];
-        //distanceDocSnapshot.documentSnapshot.data()![fieldList[0]];
-        if (fieldList.length > 1) {
-          for (int i = 1; i < fieldList.length; i++) {
-            geoPointField = geoPointField[fieldList[i]];
-          }
-        }
-        final GeoPoint geoPoint = geoPointField['geopoint'];
-        distanceDocSnapshot.distance =
-            center.distance(lat: geoPoint.latitude, lng: geoPoint.longitude);
-        return distanceDocSnapshot;
-      });
-
-      final filteredList = strictMode
-          ? mappedList
-              .where((DistanceDocSnapshot doc) =>
-                      doc.distance! <=
-                      radius * 1.02 // buffer for edge distances;
-                  )
-              .toList()
-          : mappedList.toList();
-      filteredList.sort((a, b) {
-        final distA = a.distance!;
-        final distB = b.distance!;
-        final val = (distA * 1000).toInt() - (distB * 1000).toInt();
-        return val;
-      });
-      return filteredList.map((element) => element.documentSnapshot).toList();
-    });
+    var filtered = mergedObservable.map((List<DistanceDocSnapshot> list) =>
+        _processDistanceDocSnapshots(list,
+            center: center, radius: radius, field: field));
     return filtered;
+  }
+
+  Future<List<DocumentSnapshot>> getWithin({
+    required GeoFirePoint center,
+    required double radius,
+    required String field,
+    bool strictMode = false,
+  }) async {
+    final precision = Util.setPrecision(radius);
+    final centerHash = center.hash.substring(0, precision);
+    final area = Set<String>.from(
+      GeoFirePoint.neighborsOf(hash: centerHash)..add(centerHash),
+    ).toList();
+
+    List<QuerySnapshot> querySnapshots =
+        await Future.wait(area.map((hash) => _queryPoint(hash, field).get()));
+    List<DistanceDocSnapshot> distanceDocSnapshots = querySnapshots
+        .map((querySnapshot) => querySnapshot.docs)
+        .expand((docs) => docs.map((doc) => DistanceDocSnapshot(doc, null)))
+        .toList();
+
+    return _processDistanceDocSnapshots(distanceDocSnapshots,
+        center: center, radius: radius, field: field);
   }
 
   /// Query firestore documents based on geographic [radius] from geoFirePoint [center]
@@ -218,5 +207,49 @@ class GeoFireCollectionRef {
   /// create an observable for [ref], [ref] can be [Query] or [CollectionReference]
   Stream<QuerySnapshot>? _createStream(var ref) {
     return ref.snapshots();
+  }
+
+  List<DocumentSnapshot> _processDistanceDocSnapshots(
+    List<DistanceDocSnapshot> distanceDocSnapshots, {
+    required GeoFirePoint center,
+    required double radius,
+    required String field,
+    bool strictMode = false,
+  }) {
+    var mappedList =
+        distanceDocSnapshots.map((DistanceDocSnapshot distanceDocSnapshot) {
+      // split and fetch geoPoint from the nested Map
+      final fieldList = field.split('.');
+      Map<dynamic, dynamic> snapData =
+          distanceDocSnapshot.documentSnapshot.exists
+              ? distanceDocSnapshot.documentSnapshot.data() as Map
+              : Map();
+      var geoPointField = snapData[fieldList[0]];
+      //distanceDocSnapshot.documentSnapshot.data()![fieldList[0]];
+      if (fieldList.length > 1) {
+        for (int i = 1; i < fieldList.length; i++) {
+          geoPointField = geoPointField[fieldList[i]];
+        }
+      }
+      final GeoPoint geoPoint = geoPointField['geopoint'];
+      distanceDocSnapshot.distance =
+          center.distance(lat: geoPoint.latitude, lng: geoPoint.longitude);
+      return distanceDocSnapshot;
+    });
+
+    final filteredList = strictMode
+        ? mappedList
+            .where((DistanceDocSnapshot doc) =>
+                    doc.distance! <= radius * 1.02 // buffer for edge distances;
+                )
+            .toList()
+        : mappedList.toList();
+    filteredList.sort((a, b) {
+      final distA = a.distance!;
+      final distB = b.distance!;
+      final val = (distA * 1000).toInt() - (distB * 1000).toInt();
+      return val;
+    });
+    return filteredList.map((element) => element.documentSnapshot).toList();
   }
 }

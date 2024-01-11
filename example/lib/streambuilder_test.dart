@@ -9,7 +9,7 @@ class StreamTestWidget extends StatefulWidget {
 }
 
 class _StreamTestWidgetState extends State<StreamTestWidget> {
-  Stream<List<DocumentSnapshot>> stream;
+  late Stream<List<DocumentSnapshot>> stream;
   final _firestore = FirebaseFirestore.instance;
   final geo = GeoFlutterFire();
 
@@ -44,8 +44,9 @@ class _StreamTestWidgetState extends State<StreamTestWidget> {
                   height: MediaQuery.of(context).size.height * 2 / 3,
                   child: ListView.builder(
                     itemBuilder: (context, index) {
-                      final doc = snapshots.data[index];
-                      Map<String, dynamic> data = doc.data();
+                      final doc = snapshots.data![index];
+                      Map<String, dynamic> data =
+                          doc.data() as Map<String, dynamic>;
                       print(
                           'doc with id ${doc.id} distance ${data['distance']}');
                       GeoPoint point = data['position']['geopoint'];
@@ -59,7 +60,7 @@ class _StreamTestWidgetState extends State<StreamTestWidget> {
                             '${data['documentType'] == DocumentChangeType.added ? 'Added' : 'Modified'}'),
                       );
                     },
-                    itemCount: snapshots.data.length,
+                    itemCount: snapshots.data!.length,
                   ),
                 );
               } else {
