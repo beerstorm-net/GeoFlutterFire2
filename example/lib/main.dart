@@ -23,15 +23,18 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  GoogleMapController _mapController;
-  TextEditingController _latitudeController, _longitudeController;
+  GoogleMapController? _mapController;
+  late TextEditingController _latitudeController, _longitudeController;
 
-  // firestore init
+  // Firestore initialization
   final _firestore = FirebaseFirestore.instance;
-  GeoFlutterFire geo;
-  Stream<List<DocumentSnapshot>> stream;
+  late GeoFlutterFire geo;
+  late Stream<List<DocumentSnapshot<Map<String, dynamic>>>> stream;
   final radius = BehaviorSubject<double>.seeded(1.0);
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+
+  double _value = 20.0;
+  String _label = '';
 
   @override
   void initState() {
@@ -42,21 +45,25 @@ class _MyAppState extends State<MyApp> {
     geo = GeoFlutterFire();
     GeoFirePoint center = geo.point(latitude: 12.960632, longitude: 77.641603);
     stream = radius.switchMap((rad) {
-      var collectionReference = _firestore.collection('locations');
-//          .where('name', isEqualTo: 'darshan');
-      return geo.collection(collectionRef: collectionReference).within(
-          center: center, radius: rad, field: 'position', strictMode: true);
-
-      /*
-      ****Example to specify nested object****
-
-      var collectionReference = _firestore.collection('nestedLocations');
-//          .where('name', isEqualTo: 'darshan');
-      return geo.collection(collectionRef: collectionReference).within(
-          center: center, radius: rad, field: 'address.location.position');
-
-      */
+      var collectionReference = _firestore
+          .collection('locations')
+          .withConverter<Map<String, dynamic>>(
+        fromFirestore: (snapshot, _) => snapshot.data()!,
+        toFirestore: (value, _) => value,
+      );
+      return geo
+          .collection(collectionRef: collectionReference)
+          .within(
+        center: center,
+        radius: rad,
+        field: 'position',
+        strictMode: true,
+      )
+          .map((docs) => docs
+          .map((doc) => doc as DocumentSnapshot<Map<String, dynamic>>)
+          .toList());
     });
+
   }
 
   @override
@@ -76,20 +83,15 @@ class _MyAppState extends State<MyApp> {
           title: const Text('GeoFlutterFire'),
           actions: <Widget>[
             IconButton(
-              onPressed: _mapController == null
-                  ? null
-                  : () {
-                      _showHome();
-                    },
+              onPressed: _mapController == null ? null : _showHome,
               icon: Icon(Icons.home),
             )
           ],
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-              return StreamTestWidget();
-            }));
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (context) => StreamTestWidget()));
           },
           child: Icon(Icons.navigate_next),
         ),
@@ -124,7 +126,7 @@ class _MyAppState extends State<MyApp> {
                   value: _value,
                   label: _label,
                   activeColor: Colors.blue,
-                  inactiveColor: Colors.blue.withOpacity(0.2),
+                  inactiveColor: Colors.blue.withValues(alpha: 0.2),
                   onChanged: (double value) => changed(value),
                 ),
               ),
@@ -173,7 +175,7 @@ class _MyAppState extends State<MyApp> {
               MaterialButton(
                 color: Colors.amber,
                 child: const Text(
-                  'Add nested ',
+                  'Add nested',
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () {
@@ -192,16 +194,15 @@ class _MyAppState extends State<MyApp> {
   void _onMapCreated(GoogleMapController controller) {
     setState(() {
       _mapController = controller;
-//      _showHome();
-      //start listening after map is created
-      stream.listen((List<DocumentSnapshot> documentList) {
+      // Start listening after map is created
+      stream.listen((List<DocumentSnapshot<Map<String, dynamic>>> documentList) {
         _updateMarkers(documentList);
       });
     });
   }
 
   void _showHome() {
-    _mapController.animateCamera(CameraUpdate.newCameraPosition(
+    _mapController?.animateCamera(CameraUpdate.newCameraPosition(
       const CameraPosition(
         target: LatLng(12.960632, 77.641603),
         zoom: 15.0,
@@ -211,14 +212,15 @@ class _MyAppState extends State<MyApp> {
 
   void _addPoint(double lat, double lng) {
     GeoFirePoint geoFirePoint = geo.point(latitude: lat, longitude: lng);
-    _firestore
-        .collection('locations')
-        .add({'name': 'random name', 'position': geoFirePoint.data}).then((_) {
+    _firestore.collection('locations').add({
+      'name': 'random name',
+      'position': geoFirePoint.data,
+    }).then((_) {
       print('added ${geoFirePoint.hash} successfully');
     });
   }
 
-  //example to add geoFirePoint inside nested object
+  // Example to add GeoFirePoint inside a nested object
   void _addNestedPoint(double lat, double lng) {
     GeoFirePoint geoFirePoint = geo.point(latitude: lat, longitude: lng);
     _firestore.collection('nestedLocations').add({
@@ -244,21 +246,25 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _updateMarkers(List<DocumentSnapshot> documentList) {
-    documentList.forEach((DocumentSnapshot document) {
-      Map<String, dynamic> snapData = document.data();
-      final GeoPoint point = snapData['position']['geopoint'];
-      _addMarker(point.latitude, point.longitude);
-    });
+  void _updateMarkers(List<DocumentSnapshot<Map<String, dynamic>>> documentList) {
+    for (var document in documentList) {
+      final data = document.data();
+      if (data != null) {
+        final positionData = data['position'] as Map<String, dynamic>?;
+        if (positionData != null) {
+          final geoPoint = positionData['geopoint'] as GeoPoint?;
+          if (geoPoint != null) {
+            _addMarker(geoPoint.latitude, geoPoint.longitude);
+          }
+        }
+      }
+    }
   }
 
-  double _value = 20.0;
-  String _label = '';
-
-  changed(value) {
+  void changed(double value) {
     setState(() {
       _value = value;
-      _label = '${_value.toInt().toString()} kms';
+      _label = '${_value.toInt()} kms';
       markers.clear();
     });
     radius.add(value);
